@@ -15,3 +15,15 @@ dollar_street_yolo.zip
 # Tạm thời hoặc logs
 *.log
 runs/
+
+# LaTeX intermediate build files
+*.aux
+*.bcf
+*.blg
+*.bbl
+*.out
+*.toc
+*.lof
+*.lot
+*.run.xml
+*.synctex.gz

@@ -1,0 +1,35 @@
+% ==============================================================================
+% SIC-AI CAPSTONE PROJECT REPORT - PREAMBLE CONFIGURATION
+% ==============================================================================
+% This file contains additional package configurations, bibliography setup,
+% hyperref settings, and document-wide utility commands.
+% ==============================================================================
+
+% IEEE Bibliography via BibLaTeX & Biber
+\usepackage[
+    backend=biber,
+    style=ieee,
+    sorting=none,
+    doi=false,
+    isbn=false,
+    url=false
+]{biblatex}
+\addbibresource{references.bib}
+
+% Hyperref Setup with Samsung Corporate Palette
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=SamsungBlue,
+    citecolor=SamsungBlue,
+    filecolor=SamsungBlue,
+    urlcolor=SamsungBlue,
+    pdfauthor={\teamName},
+    pdftitle={\projectTitle},
+    pdfsubject={\reportType\ - \programName},
+    pdfkeywords={Samsung Innovation Campus, AI Course, Capstone Project, Deep Learning, Artificial Intelligence}
+}
+
+% Additional Utility Macros
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\abbr}[2]{\textbf{#1} (#2)}

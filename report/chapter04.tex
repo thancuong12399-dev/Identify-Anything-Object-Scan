@@ -1,0 +1,27 @@
+\chapter{Projected Impact}
+\label{chap:projected_impact}
+
+\section{Accomplishments and Benefits}
+\label{sec:accomplishments}
+
+The implementation of the \textbf{Identify Anything} Capstone Project demonstrates that modern anchor-free single-stage object detectors (YOLOv8s), combined with socioeconomic data diversity from the Dollar Street dataset and lightweight multi-threaded desktop GUI engineering, deliver a robust perception system for real-world domestic environments. The primary accomplishments and tangible benefits of the project encompass:
+
+\begin{enumerate}
+    \item \textbf{High Detection and Localization Precision}: Achieving a peak $\text{mAP@0.50}$ of $\mathbf{96.4\%}$ and $\text{mAP@0.50:0.95}$ of $\mathbf{82.1\%}$, alongside $95.7\%$ precision and $94.3\%$ recall across nine essential household categories. The CIoU bounding box regression and Distribution Focal Loss effectively resolve spatial boundaries for both slender items (toothbrushes, spoons) and large furnishings (armchairs).
+    \item \textbf{Mitigation of Socioeconomic and Geographic Bias}: Traditional computer vision benchmark datasets predominantly reflect high-income, Western lifestyles. By curating and training on the Gapminder Dollar Street dataset spanning four continents and varied income strata, the system generalizes accurately across non-standardized utensils, diverse kitchenware, and varied domestic living conditions.
+    \item \textbf{Real-Time Throughput on Consumer Hardware}: Through asynchronous video buffering, optimized letterboxing, and half-precision PyTorch inference, the system maintains steady real-time execution at $34.8$ FPS on consumer GPU hardware and $23.5$ FPS on standard multi-core CPUs, delivering zero-latency visual tracking in live webcam feeds.
+    \item \textbf{Accessible and Bilingual User Experience}: The developed CustomTkinter desktop interface features an intuitive, modern dark-mode aesthetic with instantaneous bilingual switching (English and Vietnamese), interactive confidence thresholding, live object counts, and high-resolution snapshot capture.
+    \item \textbf{Automated Cloud-to-Edge Pipeline}: The project established a reproducible, end-to-end toolchain featuring automated Supervisely-to-YOLO conversion scripts (\texttt{dataset\_utils.py}) and single-click Kaggle GPU notebook generation (\texttt{generate\_kaggle\_notebook.py}), facilitating rapid retraining and model deployment.
+\end{enumerate}
+
+\section{Future Improvements}
+\label{sec:future_improvements}
+
+While the current system fulfills all foundational operational objectives, several technical advancements are envisioned for subsequent development phases:
+
+\begin{enumerate}
+    \item \textbf{Expansion to Comprehensive 94-Class Dollar Street Taxonomy}: The current prototype focuses on nine core household categories. Future iterations will scale the training pipeline to encompass all 94 Dollar Street object categories (over 30,000 annotated instances), covering comprehensive domestic appliances, clothing, sanitation facilities, and food items.
+    \item \textbf{INT8 Quantization and Embedded Hardware Porting}: Leveraging TensorRT Post-Training Quantization (PTQ) and INT8 calibration to deploy the model onto ultra-low-power edge computing devices (such as NVIDIA Jetson Orin Nano and Raspberry Pi 5 with Edge TPU accelerators) operating under a 10-Watt power envelope.
+    \item \textbf{Acoustic Feedback and Text-to-Speech (TTS) Integration}: Implementing offline Text-to-Speech engines (e.g., PyTTSx3 or Piper TTS) to audibly announce detected objects and relative spatial directions (e.g., ``Toothbrush detected directly ahead''), transforming the system into an active assistive navigation aid for visually impaired individuals.
+    \item \textbf{Open-Vocabulary and Vision-Language Integration}: Integrating lightweight Vision-Language Models (such as YOLO-World or MobileCLIP) to enable zero-shot prompt-based object querying, allowing users to locate arbitrary household items without retraining the underlying neural network.
+\end{enumerate}

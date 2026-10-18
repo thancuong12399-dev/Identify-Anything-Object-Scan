@@ -1,0 +1,141 @@
+\chapter{Project Execution}
+\label{chap:project_execution}
+
+\section{Data Acquisition}
+\label{sec:data_acquisition}
+
+The generalization capability and operational robustness of deep object detection models in computer vision rely heavily on the statistical diversity, ecological validity, and socioeconomic breadth of the training corpus. In contrast to conventional benchmark datasets such as Microsoft COCO or Pascal VOC, which are predominantly scraped from Western-centric web pages, this project leverages the \textbf{Dollar Street} dataset curated by the Gapminder Foundation \cite{rojas2021dollar}.
+
+The Dollar Street dataset documents daily living conditions across hundreds of households spanning over 60 countries and diverse monthly income brackets (from under \$50 to over \$10,000 per month). For our core household perception engine, data acquisition and curation encompassed the following pipeline:
+
+\begin{enumerate}[label=\arabic*)]
+    \item \textbf{Target Object Taxonomy}: We extracted and harmonized nine representative household object classes with high utility in domestic assistance, robotics, and assistive accessibility:
+    \begin{itemize}
+        \item \textit{Personal Sanitation and Care}: \texttt{toothbrushes}, \texttt{toothpaste}, \texttt{soaps}.
+        \item \textit{Kitchen Utensils and Hydration}: \texttt{drinking cups}, \texttt{plates}, \texttt{forks}, \texttt{spoons}.
+        \item \textit{Domestic Amenities and Lighting}: \texttt{armchairs}, \texttt{lamps}.
+    \end{itemize}
+    \item \textbf{Data Ingestion and Supervisely Format Schema}: Raw image packages and associated visual annotations were acquired in the Supervisely JSON annotation format. Each image entry features metadata including income tier, country of origin, capture perspective, and polygon/bounding-box coordinates defined in absolute image pixel space:
+    \begin{equation}
+        \text{Box}_{\text{raw}} = [x_{\min}, y_{\min}, x_{\max}, y_{\max}], \quad 0 \leq x \leq W, \quad 0 \leq y \leq H
+    \end{equation}
+    where $W$ and $H$ represent image width and height in pixels, respectively.
+    \item \textbf{Data Pipeline Transformation}: We implemented an automated parsing and transformation engine in \texttt{dataset\_utils.py} that converts hierarchical Supervisely JSON geometries into normalized YOLO bounding box coordinates:
+    \begin{equation}
+        x_{\text{center}} = \frac{x_{\min} + x_{\max}}{2W}, \quad y_{\text{center}} = \frac{y_{\min} + y_{\max}}{2H}, \quad w = \frac{x_{\max} - x_{\min}}{W}, \quad h = \frac{y_{\max} - y_{\min}}{H}
+        \label{eq:yolo_norm}
+    \end{equation}
+    where all coordinates satisfy $x_{\text{center}}, y_{\text{center}}, w, h \in [0.0, 1.0]$.
+    \item \textbf{Dataset Stratification and Split}: The curated dataset contains 5,420 high-resolution images. To guarantee unbiased evaluation and prevent data leakage across identical households, images were stratified into training, validation, and testing partitions:
+    \begin{itemize}
+        \item \textbf{Training Set}: 3,794 images (70\%) subjected to mosaic augmentation, affine transformations, and photometric distortions.
+        \item \textbf{Validation Set}: 1,084 images (20\%) reserved for hyperparameter tuning and model checkpoint selection.
+        \item \textbf{Testing Set}: 542 images (10\%) preserved for independent generalization evaluation across income levels.
+    \end{itemize}
+\end{enumerate}
+
+\section{Training Methodology}
+\label{sec:training_methodology}
+
+\subsection{Backbone and Neck Architecture Selection}
+To achieve high inference throughput on consumer hardware while preserving fine-grained localization for small objects (e.g., toothbrushes and spoons), we selected the modern anchor-free single-stage detector \textbf{YOLOv8} (specifically \textbf{YOLOv8s}) \cite{jocher2023ultralytics}.
+
+The architectural components are organized as follows:
+\begin{itemize}
+    \item \textbf{CSPDarknet53 Backbone}: Utilizes Cross-Stage Partial network connections (C2f modules) \cite{wang2020cspnet} that partition gradient flows across parallel computational paths. This design preserves multi-scale spatial semantics while significantly reducing redundant gradient computation. Spatial Pyramid Pooling - Fast (SPPF) is attached at the deepest stage to fuse global contextual receptive fields.
+    \item \textbf{Path Aggregation Network (PANet) Neck}: A bidirectional feature pyramid network \cite{liu2018path} combining top-down semantic pathways with bottom-up localization pathways, generating multi-scale feature maps at strides $P_3$ ($8\times8$), $P_4$ ($16\times16$), and $P_5$ ($32\times32$).
+    \item \textbf{Decoupled Anchor-Free Detection Head}: Replaces coupled classification/localization heads with independent branches. By separating classification logits from bounding-box regression, the model mitigates feature interference and directly regresses normalized bounding box distances without requiring heuristic anchor prior clustering.
+\end{itemize}
+
+\subsection{Multi-Task Loss Formulation}
+The YOLOv8 objective function combines classification loss with geometric bounding box regression and distribution focal loss:
+
+\begin{equation}
+    \mathcal{L}_{\text{total}} = \lambda_{\text{cls}} \mathcal{L}_{\text{BCE}} + \lambda_{\text{box}} \mathcal{L}_{\text{CIoU}} + \lambda_{\text{dfl}} \mathcal{L}_{\text{DFL}}
+    \label{eq:yolo_total_loss}
+\end{equation}
+
+\subsubsection{Binary Cross-Entropy Classification Loss ($\mathcal{L}_{\text{BCE}}$)}
+Classification across the $K=9$ object categories employs Binary Cross-Entropy (BCE) with Task-Aligned Assigner (TAL) dynamic label assignment:
+\begin{equation}
+    \mathcal{L}_{\text{BCE}} = -\frac{1}{N_{\text{pos}}} \sum_{i=1}^{N_{\text{pos}}} \sum_{k=1}^K \left[ y_{i,k} \log(\hat{p}_{i,k}) + (1 - y_{i,k}) \log(1 - \hat{p}_{i,k}) \right]
+\end{equation}
+where $\hat{p}_{i,k}$ is the predicted sigmoid probability for class $k$ at anchor point $i$, and $y_{i,k} \in \{0, 1\}$ is the assigned target score.
+
+\subsubsection{Complete Intersection over Union Loss ($\mathcal{L}_{\text{CIoU}}$)}
+For spatial regression, standard IoU or GIoU losses fail when boxes share identical overlap but differ in aspect ratio. Complete IoU (CIoU) \cite{zheng2020distance} addresses this by explicitly penalizing overlap area, normalized central point distance, and aspect ratio discrepancies:
+\begin{equation}
+    \mathcal{L}_{\text{CIoU}} = 1 - \text{IoU} + \frac{\rho^2(b, b^{\text{gt}})}{c^2} + \alpha v
+    \label{eq:ciou}
+\end{equation}
+where:
+\begin{itemize}
+    \item $\text{IoU} = \frac{|b \cap b^{\text{gt}}|}{|b \cup b^{\text{gt}}|}$ represents the volumetric intersection over union between predicted box $b$ and ground truth $b^{\text{gt}}$.
+    \item $\rho(b, b^{\text{gt}})$ denotes the Euclidean distance between the centroids of $b$ and $b^{\text{gt}}$.
+    \item $c$ represents the diagonal length of the smallest enclosing bounding box covering both $b$ and $b^{\text{gt}}$.
+    \item $v$ measures the consistency of the aspect ratio:
+    \begin{equation}
+        v = \frac{4}{\pi^2} \left( \arctan\frac{w^{\text{gt}}}{h^{\text{gt}}} - \arctan\frac{w}{h} \right)^2
+    \end{equation}
+    \item $\alpha$ is a balancing weighting factor defined as:
+    \begin{equation}
+        \alpha = \frac{v}{(1 - \text{IoU}) + v}
+    \end{equation}
+\end{itemize}
+
+\subsubsection{Distribution Focal Loss ($\mathcal{L}_{\text{DFL}}$)}
+To accommodate boundary ambiguity in cluttered household imagery (such as transparent drinking cups or semi-occluded toothbrushes), Distribution Focal Loss (DFL) \cite{li2020generalized} treats box edge locations as continuous probability distributions rather than Dirac delta values:
+\begin{equation}
+    \mathcal{L}_{\text{DFL}}(S_i, S_{i+1}) = - \left( (y_{i+1} - y) \log(S_i) + (y - y_i) \log(S_{i+1}) \right)
+    \label{eq:dfl}
+\end{equation}
+where $S_i$ and $S_{i+1}$ are softmax outputs corresponding to adjacent discrete bins $y_i$ and $y_{i+1}$ enclosing the continuous regression coordinate $y$.
+
+\subsection{Kaggle Cloud GPU Training Setup}
+To enable rapid experimentation without local GPU bottlenecks, the model training was automated and containerized on the Kaggle Cloud Platform via our custom generator script \texttt{generate\_kaggle\_notebook.py}. The execution environment comprised:
+\begin{itemize}
+    \item \textbf{Compute Hardware}: Dual NVIDIA Tesla T4 GPUs (16 GB GDDR6 VRAM each, 32 GB aggregate) hosted on Ubuntu Linux x86\_64 with CUDA 12.1.
+    \item \textbf{Hyperparameter Configuration}:
+    \begin{itemize}
+        \item Base image resolution: $640 \times 640$ pixels.
+        \item Batch size: 32 samples per mini-batch with dynamic caching.
+        \item Optimization algorithm: Stochastic Gradient Descent (SGD) with momentum $\beta = 0.937$ and weight decay $\omega = 0.0005$.
+        \item Learning rate schedule: Cosine annealing schedule with initial learning rate $\eta_0 = 0.01$ and final learning rate $\eta_f = 0.0001$, preceded by 3 linear warmup epochs.
+        \item Training duration: 50 epochs with automated early stopping based on validation mAP@0.50.
+    \end{itemize}
+    \item \textbf{Data Augmentation Strategy}: Mosaic augmentation (mixing 4 images into one composite), random affine translation ($\pm 10\%$), horizontal flipping ($p=0.5$), and HSV color-space perturbations ($\text{Hue}=0.015, \text{Sat}=0.7, \text{Val}=0.4$).
+\end{itemize}
+
+\section{Workflow}
+\label{sec:workflow}
+
+The real-time operational workflow executes across seven synchronized stages:
+\begin{enumerate}
+    \item \textbf{Video Frame Acquisition}: Live video frames ($1280 \times 720$ resolution at 30 FPS) are acquired from the system webcam using a dedicated non-blocking thread managed by the \texttt{WebcamStream} handler in OpenCV.
+    \item \textbf{Letterbox Pre-Processing}: Input frames are adaptively resized and padded to the model's canonical dimensions ($640 \times 640 \times 3$) while strictly preserving the original aspect ratio to eliminate spatial distortion.
+    \item \textbf{Tensor Conversion \& Normalization}: The BGR frame buffer is converted to RGB format, normalized from integer range $[0, 255]$ to floating-point $[0.0, 1.0]$, and loaded into the PyTorch inference tensor on the host device.
+    \item \textbf{Deep Feature Inference}: The pre-trained YOLOv8s weights (\texttt{best.pt}) evaluate the tensor through the CSPDarknet backbone and decoupled head, generating multi-scale bounding-box predictions and class probabilities.
+    \item \textbf{Non-Maximum Suppression (NMS)}: Candidate bounding boxes undergo Non-Maximum Suppression with an IoU threshold $\tau_{\text{IoU}} = 0.45$ and a user-adjustable confidence threshold $\tau_{\text{conf}} \in [0.20, 0.90]$ to eliminate redundant overlapping boxes.
+    \item \textbf{Class Mapping and Bilingual Translation}: Detected class indices are mapped to both English identifiers and Vietnamese terminology (e.g., \textit{toothbrush} $\rightarrow$ \textit{Bàn chải đánh răng}, \textit{armchair} $\rightarrow$ \textit{Ghế bành}).
+    \item \textbf{Interactive UI Overlay \& Audio/LED Alert}: The bounding boxes, class labels, confidence scores, and detection counts are rendered on the high-DPI CustomTkinter interface canvas, simultaneously updating the event telemetry dashboard.
+\end{enumerate}
+
+\section{System Design}
+\label{sec:system_design}
+
+The end-to-end software and hardware architecture is structured into four decoupled, modular layers:
+\begin{itemize}
+    \item \textbf{Edge Perception \& Video Ingestion Layer}: Encapsulates camera discovery, OpenCV video capture, asynchronous thread buffering, and format conversion.
+    \item \textbf{Deep Inference Engine}: Incorporates the PyTorch / Ultralytics YOLOv8 inference graph, dynamic weight loading (\texttt{best.pt} or pre-trained defaults), GPU/CPU device dispatching, and NMS post-processing.
+    \item \textbf{Data Transformation \& Config Management Layer}: Manages dataset conversion from Supervisely JSON to YOLO format, Kaggle notebook generation, YAML dataset descriptors (\texttt{data.yaml}), and bilingual localization dictionaries.
+    \item \textbf{Interactive Presentation Layer}: Built on CustomTkinter and PIL, delivering a modern dark-themed GUI with live canvas rendering, confidence sliders, detection telemetry panels, snapshot capture, and localized English/Vietnamese toggles.
+\end{itemize}
+
+Figure~\ref{fig:system_design} illustrates the complete architectural design and end-to-end pipeline flow of the developed system.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\textwidth]{figures/system_design.png}
+    \caption{Overall System Architecture and Pipeline Flow of the Identify Anything Platform}
+    \label{fig:system_design}
+\end{figure}

@@ -77,9 +77,18 @@ pip install ultralytics customtkinter opencv-python pillow pyyaml
 ├── export_dataset.py                        # Script xuất dữ liệu dòng lệnh
 ├── DollarStreet_YOLO_Training_Kaggle.ipynb  # Notebook huấn luyện tự động trên Kaggle
 ├── DollarStreet_Kaggle_Guide.md             # Hướng dẫn chi tiết từng bước cho Kaggle
+├── report/                                  # Báo cáo Capstone Project chính thức (LaTeX & PDF)
+│   ├── main.pdf                             # File PDF báo cáo nghiên cứu hoàn chỉnh (33 trang)
+│   ├── figures/                             # Toàn bộ biểu đồ EDA, kiến trúc và kết quả
+│   └── *.tex                                # Mã nguồn LaTeX chuẩn Samsung Innovation Campus
 └── .gitignore                               # Loại trừ dữ liệu lớn và file tạm
 ```
 
 ---
 
-*Phát triển bởi [thancuong12399-dev](https://github.com/thancuong12399-dev).*
+## 👥 Nhóm Tác Giả (Authors)
+
+- **Thân Phú Cường** (Team Leader & Cloud AI Engineer) - [@thancuong12399-dev](https://github.com/thancuong12399-dev)
+- **Nguyễn Minh Phương** (Computer Vision & Application Engineer)
+
+*Dự án Capstone Project thuộc chương trình đào tạo Samsung Innovation Campus (SIC).*

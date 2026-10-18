@@ -1,0 +1,73 @@
+\chapter{Introduction}
+\label{chap:introduction}
+
+\section{Background Information}
+\label{sec:background}
+
+Visual object detection constitutes one of the foundational cornerstones of modern Computer Vision (CV), enabling autonomous systems, robotic agents, and interactive software to localize and categorize semantic entities within unconstrained natural scenes. Over the past decade, the rapid ascendancy of Deep Learning (DL) has propelled object detection through transformative paradigm shifts \cite{lecun2015deep}. Classical approaches relying on hand-crafted spatial descriptors---such as Deformable Part Models (DPM), Histograms of Oriented Gradients (HOG), and Scale-Invariant Feature Transform (SIFT)---have been superseded by deep Convolutional Neural Networks (CNNs) capable of learning hierarchical spatial representations directly from raw pixel arrays \cite{he2016deep}.
+
+In contemporary deep learning, object detectors bifurcate into two primary algorithmic families: two-stage region-proposal networks (such as Faster R-CNN \cite{ren2015faster}) and single-stage anchor-free regression architectures (exemplified by the YOLO series \cite{redmon2016you, jocher2023ultralytics}). While two-stage detectors prioritize localization precision at the cost of high computational latency, single-stage detectors frame object detection as a unified spatial bounding box regression and multi-class classification problem. The advent of modern single-stage architectures, notably YOLOv8 \cite{jocher2023ultralytics}, has bridged this historical performance divide. By introducing an anchor-free split head, Cross-Stage Partial Network (CSPNet) backbones \cite{wang2020cspnet}, and advanced feature pyramid networks (PANet) \cite{liu2018path}, YOLOv8 achieves state-of-the-art trade-offs between Mean Average Precision (mAP) and real-time inference latency ($>30$ frames per second) on standard consumer graphics processing units.
+
+Concurrently, deep learning research has increasingly recognized that modern vision benchmarks (e.g., ImageNet, MS COCO, and Pascal VOC) suffer from severe geographical, cultural, and socioeconomic sampling biases. The overwhelming majority of visual training samples originate from high-income, Western households, resulting in algorithms that fail catastrophically when presented with everyday items from emerging economies \cite{shankar2021no}. To address this systemic bias, the Gapminder Foundation pioneered the \textit{Dollar Street} dataset \cite{rojas2021dollar}, capturing tens of thousands of everyday household objects across hundreds of families in over 60 countries across four distinct income brackets. Spanning items from cooking stoves and toothbrushes to beds, phones, and drinking water sources, Dollar Street reflects the true morphological heterogeneity of global human habitation.
+
+In educational ecosystems such as Samsung Innovation Campus (SIC) and smart home automation environments, automated detection of everyday household objects forms the core perceptual foundation for ambient intelligence, assistive robotics, and inventory monitoring. However, realizing robust, real-time detection on Dollar Street requires overcoming severe morphological variance, indoor background clutter, and real-time processing constraints.
+
+\section{Motivation and Objective}
+\label{sec:motivation_objective}
+
+Deploying deep object detection models in real-world domestic environments presents significant algorithmic and engineering challenges that academic benchmarks frequently obscure:
+\begin{enumerate}[label=\alph*)]
+    \item \textbf{Extreme Morphological and Cultural Variance}: Standard detectors trained on Western imagery presume canonical object geometries (e.g., an electric kitchen stove or a modern ceramic toilet). In global household contexts, a ``stove'' may manifest as an open three-stone firewood hearth, a portable kerosene burner, or a modern induction range. Detecting such entities under high intra-class variance demands strong feature generalization.
+    \item \textbf{Indoor Clutter and Severe Occlusions}: Domestic scenes exhibit high object density, varying viewing perspectives (steep angles, close-up crops), and frequent partial occlusions by hands, furniture, and kitchen utensils.
+    \item \textbf{Heterogeneous Annotation Architecture}: Raw global datasets frequently employ proprietary polygon or multi-point Supervisely JSON formats rather than normalized bounding box schemas. Building automated data pipelines capable of parsing, cleaning, and normalizing bounding box coordinates without spatial distortion is essential.
+    \item \textbf{Edge and Desktop Throughput Constraints}: Practical deployment necessitates interactive desktop response times ($<30$ milliseconds per frame, $\ge 30$ FPS) for real-time webcam streams on standard desktop PCs without requiring high-end datacenter infrastructure.
+\end{enumerate}
+
+To conquer these challenges, this Capstone Project develops an end-to-end, high-performance, real-time Household Object Detection and Analysis System, entitled \textbf{Identify Anything}, leveraging the modern YOLOv8 architecture fine-tuned on the Dollar Street dataset. The explicit objectives are:
+\begin{itemize}
+    \item \textbf{Data Engineering Pipeline}: Construct an automated, high-throughput ingestion and conversion module that parses 27,519 multi-category Supervisely JSON annotations, cleans malformed geometries, filters targeted high-priority household classes, and outputs standardized YOLOv8 coordinate schemas.
+    \item \textbf{Cloud GPU Transfer Learning}: Design and execute an optimized fine-tuning protocol on Kaggle cloud infrastructure utilizing dual NVIDIA Tesla T4 GPUs, optimizing Complete IoU (CIoU) and Distribution Focal Loss (DFL) across 35 epochs.
+    \item \textbf{Quantitative Performance Benchmarking}: Achieve superior mean Average Precision ($\text{mAP}@0.50 \ge 95\%$) across twenty primary everyday object categories (including Phone, Computer, Car, Bed, Bike, Stove, Cooking Pot, and Toothbrush).
+    \item \textbf{Native Interactive Desktop Application}: Engineer a full-featured Windows desktop application (\textit{Dollar Street AI Studio}) in Python CustomTkinter featuring real-time webcam inference at 30+ FPS, batch image testing, bounding box visualization, and complete Vietnamese localization.
+\end{itemize}
+
+\section{Members and Role Assignments}
+\label{sec:members_roles}
+
+The capstone project was executed collaboratively by a dedicated two-member engineering team. Specific roles, technical domains, and task allocations are summarized in Table~\ref{tab:team_roles}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Team Members and Role Assignments}
+    \label{tab:team_roles}
+    \begin{tabularx}{\textwidth}{l p{4.2cm} X}
+        \toprule
+        \textbf{No.} & \textbf{Member Name} & \textbf{Assigned Roles and Responsibilities} \\
+        \midrule
+        1 & \textbf{\memberOne} & \textbf{Project Leader \& Cloud AI Engineer}: End-to-end system architecture, Kaggle GPU distributed training pipeline, YOLOv8 hyperparameter tuning, MLOps, loss convergence analysis, and final documentation. \\
+        2 & \textbf{\memberTwo} & \textbf{Computer Vision \& Application Engineer}: Supervisely-to-YOLO automated data conversion, Exploratory Data Analysis (EDA), CustomTkinter desktop GUI design, multi-threaded real-time webcam inference, and Vietnamese localization. \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Schedule and Milestones}
+\label{sec:schedule_milestones}
+
+The project spanned a rigorous 10-week development lifecycle within the Samsung Innovation Campus AI curriculum. The milestone timeline and task execution schedule are summarized in Table~\ref{tab:milestones}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Project Timeline and Milestone Schedule}
+    \label{tab:milestones}
+    \begin{tabularx}{\textwidth}{c l X c}
+        \toprule
+        \textbf{Phase} & \textbf{Timeline} & \textbf{Key Deliverables / Activities} & \textbf{Status} \\
+        \midrule
+        1 & Weeks 1--2 & Problem definition, literature review of real-time object detection architectures (YOLOv5/v7/v8), and Dollar Street dataset acquisition. & Completed \\
+        2 & Weeks 3--4 & Exploratory Data Analysis (EDA), spatial bounding box distribution analysis, and Supervisely JSON to YOLO conversion engine development. & Completed \\
+        3 & Weeks 5--7 & Dataset stratification (80/20 train/val split), Kaggle cloud GPU training environment configuration, and YOLOv8s fine-tuning under CIoU/DFL losses. & Completed \\
+        4 & Weeks 8--9 & Weight serialization (\texttt{best.pt}), Windows desktop application development (\textit{Dollar Street AI Studio}), webcam streaming integration, and UI Vietnamese localization. & Completed \\
+        5 & Week 10    & Quantitative benchmarking, validation test inference, final documentation, project presentation, and defense. & Completed \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
