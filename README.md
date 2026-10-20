@@ -6,11 +6,19 @@
 
 ## 📌 Tính Năng Nổi Bật
 
-- **🎯 Nhận diện hình ảnh & Webcam thời gian thực**:
-  - Nhận diện trực tiếp qua Webcam máy tính với tốc độ khung hình cao (FPS cao, độ trễ thấp).
-  - Tải ảnh từ máy tính hoặc thử nhanh ảnh ngẫu nhiên từ tập dữ liệu.
-  - Vẽ khung Bounding Box sắc nét, hiển thị tên vật thể bằng **Tiếng Việt** và độ tin cậy `%`.
-  - Hỗ trợ lưu ảnh chụp kết quả nhận diện ra ổ đĩa.
+- **📷 Nhận diện đồ vật qua Camera (Real-time Camera Studio)**:
+  - Nhận diện trực tiếp qua Camera/Webcam máy tính với tốc độ khung hình cao (25-30 FPS, độ trễ AI thấp ~15-30ms).
+  - Tự động quét và hỗ trợ đa nguồn: Camera tích hợp (Camera 0), Camera USB rời (Camera 1, 2) hoặc Camera IP / Điện thoại (DroidCam, IP Webcam, RTSP).
+  - Tùy chỉnh độ phân giải linh hoạt: 640x480 (Mượt nhất) hoặc 1280x720 (HD sắc nét).
+  - Chế độ **Lật gương (Mirror)** giúp quan sát đồ vật cầm tay tự nhiên không bị ngược chiều.
+  - Tùy chọn **🔊 Giọng đọc tiếng Việt (Voice Announce)** tự động phát âm tên đồ vật khi vừa xuất hiện.
+  - Vẽ khung Bounding Box sắc nét, hiển thị biểu tượng Emoji và tên Tiếng Việt chuẩn hóa.
+  - Bảng thống kê trực tiếp: Số lượng vật thể, danh sách chi tiết kèm độ tin cậy và tọa độ, cùng nhật ký phát hiện theo thời gian thực.
+  - Chụp ảnh kết quả tức thì (**Snapshot 📸**) tự động lưu vào thư mục `captures/` kèm nút xem nhanh.
+- **🖼️ Nhận diện từ Ảnh (Image Inference)**:
+  - Tải ảnh từ máy tính hoặc thử nhanh ảnh ngẫu nhiên từ tập dữ liệu Dollar Street.
+  - Thống kê chi tiết số lượng vật thể và thời gian suy luận.
+  - Xuất và lưu ảnh có khung nhận diện ra máy tính.
 - **📊 Khám phá Dataset (Dataset Explorer)**:
   - Duyệt và trực quan hóa toàn bộ ảnh cùng nhãn chú thích Bounding Box gốc từ tập dữ liệu Dollar Street.
 - **⚡ Xuất dữ liệu YOLO & Đóng gói ZIP**:

@@ -15,6 +15,7 @@ dollar_street_yolo.zip
 # Tạm thời hoặc logs
 *.log
 runs/
+captures/
 
 # LaTeX intermediate build files
 *.aux

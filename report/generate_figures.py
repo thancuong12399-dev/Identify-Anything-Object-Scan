@@ -66,8 +66,8 @@ ax.text(10.7, 3.7, 'Load Model', ha='center', va='center', fontsize=8, fontweigh
 
 # Pipeline Row 2: Desktop AI Application & Real-Time Inference
 draw_block(8.8, 1.7, 2.8, 1.3, 'Inference Engine', 'Ultralytics YOLOv8s\nAnchor-Free Decoupled Head', '#193DB0')
-draw_block(5.0, 1.7, 3.1, 1.3, 'Dollar Street AI Studio', 'CustomTkinter Windows App\nDark Mode / Vietnamese Labels', '#193DB0')
-draw_block(1.2, 1.7, 3.1, 1.3, 'Dual Operational Modes', 'Mode 1: Image & Random Test\nMode 2: 30+ FPS Live Webcam', '#FFFFFF', '#193DB0', '#193DB0')
+draw_block(5.0, 1.7, 3.1, 1.3, 'Dollar Street AI Studio', 'CustomTkinter Windows App\nDedicated Real-Time Camera Studio', '#193DB0')
+draw_block(1.2, 1.7, 3.1, 1.3, 'Camera & Voice Suite', 'DirectShow Multi-Cam & IP Streams\nMirror Mode & TTS Voice Announcer', '#FFFFFF', '#193DB0', '#193DB0')
 
 draw_arrow(8.8, 2.35, 8.1, 2.35, 'Inference')
 draw_arrow(5.0, 2.35, 4.3, 2.35, 'Render')
@@ -80,7 +80,7 @@ rect_bg = patches.FancyBboxPatch((0.8, 1.3), 11.0, 2.0,
                                 linewidth=1.2,
                                 alpha=0.35)
 ax.add_patch(rect_bg)
-ax.text(1.2, 3.1, 'Local Windows Desktop Deployment Layer (CustomTkinter GUI)', 
+ax.text(1.2, 3.1, 'Local Windows Desktop Deployment Layer (CustomTkinter GUI & Camera Studio)', 
         fontsize=9, fontweight='bold', color='#193DB0')
 
 plt.savefig('figures/system_design.png', dpi=300, bbox_inches='tight')
@@ -179,57 +179,95 @@ plt.close()
 # ------------------------------------------------------------------------------
 # 4. Desktop UI Screenshot (figures/ui_screenshot.png)
 # ------------------------------------------------------------------------------
-fig, ax = plt.subplots(figsize=(11, 6.2), dpi=300)
+fig, ax = plt.subplots(figsize=(11.5, 6.4), dpi=300)
 ax.set_facecolor('#0F172A')
 fig.patch.set_facecolor('#1E293B')
 ax.axis('off')
 
-sidebar = patches.Rectangle((0, 0), 2.2, 6.0, facecolor='#1E293B', edgecolor='#334155', lw=1.5)
+# Sidebar Navigation
+sidebar = patches.Rectangle((0, 0), 2.3, 6.2, facecolor='#1E293B', edgecolor='#334155', lw=1.5)
 ax.add_patch(sidebar)
-ax.text(1.1, 5.5, 'Dollar Street AI', ha='center', va='center', color='white', fontsize=12, fontweight='bold')
-ax.text(1.1, 5.15, 'YOLOv8 Suite', ha='center', va='center', color='#94A3B8', fontsize=9)
+ax.text(1.15, 5.75, 'Dollar Street AI', ha='center', va='center', color='white', fontsize=12, fontweight='bold')
+ax.text(1.15, 5.45, 'YOLOv8 Perception Suite', ha='center', va='center', color='#94A3B8', fontsize=8.5)
 
-btn_y = [4.3, 3.6, 2.9, 2.2]
-btn_labels = ['AI Detection', 'Dataset Explorer', 'Export Data', 'Kaggle Guide']
+btn_y = [4.7, 4.05, 3.4, 2.75, 2.1]
+btn_labels = ['Camera Studio', 'Image Inference', 'Dataset Explorer', 'Export Data', 'Kaggle Guide']
 for i, (by, bl) in enumerate(zip(btn_y, btn_labels)):
     col = '#3B82F6' if i == 0 else '#334155'
-    b = patches.FancyBboxPatch((0.2, by), 1.8, 0.45, boxstyle="round,pad=0.03", facecolor=col, edgecolor='none')
+    b = patches.FancyBboxPatch((0.15, by), 2.0, 0.46, boxstyle="round,pad=0.04", facecolor=col, edgecolor='none')
     ax.add_patch(b)
-    ax.text(1.1, by+0.22, bl, ha='center', va='center', color='white', fontsize=8.5, fontweight='bold')
+    prefix = '> ' if i == 0 else '  '
+    ax.text(1.15, by+0.23, prefix + bl, ha='center', va='center', color='white', fontsize=8.5, fontweight='bold')
 
-main_rect = patches.FancyBboxPatch((2.5, 0.5), 5.6, 5.1, boxstyle="round,pad=0.05", facecolor='#0B0F19', edgecolor='#38BDF8', lw=1.5)
+# Top Control Ribbon (Camera Controls)
+ctrl_ribbon = patches.FancyBboxPatch((2.6, 5.4), 8.6, 0.65, boxstyle="round,pad=0.03", facecolor='#1E293B', edgecolor='#334155', lw=1.2)
+ax.add_patch(ctrl_ribbon)
+
+# Start/Stop Button (Red active)
+btn_stop = patches.FancyBboxPatch((2.75, 5.5), 1.35, 0.44, boxstyle="round,pad=0.02", facecolor='#EF4444', edgecolor='none')
+ax.add_patch(btn_stop)
+ax.text(3.42, 5.72, 'STOP CAMERA', ha='center', va='center', color='white', fontsize=7.5, fontweight='bold')
+
+# Snapshot Button
+btn_snap = patches.FancyBboxPatch((4.2, 5.5), 1.1, 0.44, boxstyle="round,pad=0.02", facecolor='#0284C7', edgecolor='none')
+ax.add_patch(btn_snap)
+ax.text(4.75, 5.72, 'Snapshot', ha='center', va='center', color='white', fontsize=7.5, fontweight='bold')
+
+# Camera source & Settings badges
+ax.text(5.5, 5.72, 'Source: Camera 0', color='#38BDF8', fontsize=7.5, fontweight='bold', va='center')
+ax.text(6.8, 5.72, 'Res: 1280x720 HD', color='#E2E8F0', fontsize=7.5, va='center')
+ax.text(8.0, 5.72, '[x] Mirror', color='#10B981', fontsize=7.5, fontweight='bold', va='center')
+ax.text(8.8, 5.72, '[x] Voice (TTS)', color='#10B981', fontsize=7.5, fontweight='bold', va='center')
+ax.text(10.2, 5.72, 'Conf: 25%', color='#F59E0B', fontsize=7.5, fontweight='bold', va='center')
+
+# Main Video Screen (Left Panel)
+main_rect = patches.FancyBboxPatch((2.6, 0.4), 5.7, 4.85, boxstyle="round,pad=0.05", facecolor='#0B0F19', edgecolor='#38BDF8', lw=1.5)
 ax.add_patch(main_rect)
-ax.text(5.3, 5.3, 'Live Webcam Video Stream (1920x1080 @ 32 FPS)', ha='center', va='center', color='#38BDF8', fontsize=10, fontweight='bold')
+ax.text(5.45, 4.95, 'Real-Time Camera Stream (DirectShow @ 32.4 FPS)', ha='center', va='center', color='#38BDF8', fontsize=9.5, fontweight='bold')
 
 # Mock Object 1 (Phone)
-phone_box = patches.Rectangle((3.2, 1.8), 1.8, 2.6, facecolor='none', edgecolor='#3B82F6', lw=3)
+phone_box = patches.Rectangle((3.3, 1.6), 1.8, 2.6, facecolor='none', edgecolor='#3B82F6', lw=3)
 ax.add_patch(phone_box)
-tag1 = patches.Rectangle((3.2, 4.4), 1.4, 0.35, facecolor='#3B82F6', edgecolor='none')
+tag1 = patches.Rectangle((3.3, 4.2), 1.6, 0.38, facecolor='#3B82F6', edgecolor='none')
 ax.add_patch(tag1)
-ax.text(3.9, 4.57, 'Phone: 96%', color='white', fontsize=8.5, fontweight='bold', ha='center', va='center')
+ax.text(4.1, 4.39, 'Phone / Dien thoai: 96%', color='white', fontsize=8, fontweight='bold', ha='center', va='center')
 
 # Mock Object 2 (Cup)
-cup_box = patches.Rectangle((5.8, 1.4), 1.6, 2.0, facecolor='none', edgecolor='#10B981', lw=3)
+cup_box = patches.Rectangle((6.0, 1.3), 1.6, 2.0, facecolor='none', edgecolor='#10B981', lw=3)
 ax.add_patch(cup_box)
-tag2 = patches.Rectangle((5.8, 3.4), 1.2, 0.35, facecolor='#10B981', edgecolor='none')
+tag2 = patches.Rectangle((6.0, 3.3), 1.5, 0.38, facecolor='#10B981', edgecolor='none')
 ax.add_patch(tag2)
-ax.text(6.4, 3.57, 'Cup: 94%', color='white', fontsize=8.5, fontweight='bold', ha='center', va='center')
+ax.text(6.75, 3.49, 'Cup / Coc nuoc: 94%', color='white', fontsize=8, fontweight='bold', ha='center', va='center')
 
-summary = patches.FancyBboxPatch((8.4, 0.5), 2.3, 5.1, boxstyle="round,pad=0.05", facecolor='#1E293B', edgecolor='#334155', lw=1.5)
+# HUD Overlay at bottom of camera view
+hud_bg = patches.Rectangle((2.65, 0.45), 5.6, 0.38, facecolor='#1E293B', edgecolor='#334155', lw=1)
+ax.add_patch(hud_bg)
+ax.text(2.8, 0.64, 'LIVE STREAMING', color='#10B981', fontsize=7.5, fontweight='bold', va='center')
+ax.text(4.3, 0.64, 'FPS: 32.4 | Latency: 18.2 ms', color='#38BDF8', fontsize=7.5, va='center')
+ax.text(7.2, 0.64, 'Voice: Announcing', color='#F59E0B', fontsize=7.5, va='center')
+
+# Right Side Panel: Live Object Telemetry & Inventory
+summary = patches.FancyBboxPatch((8.5, 0.4), 2.7, 4.85, boxstyle="round,pad=0.05", facecolor='#1E293B', edgecolor='#334155', lw=1.5)
 ax.add_patch(summary)
-ax.text(9.55, 5.3, 'Detection Summary', ha='center', va='center', color='white', fontsize=10, fontweight='bold')
-ax.text(9.55, 4.8, 'Objects: 2 detected\nLatency: 18.4 ms (GPU)', ha='center', va='center', color='#38BDF8', fontsize=8.5)
+ax.text(9.85, 4.95, 'Live Detection Telemetry', ha='center', va='center', color='white', fontsize=10, fontweight='bold')
+ax.text(9.85, 4.60, 'Detected: 2 Objects | Model: best.pt', ha='center', va='center', color='#38BDF8', fontsize=8)
+
+tally_box = patches.FancyBboxPatch((8.65, 4.0), 2.4, 0.42, boxstyle="round,pad=0.02", facecolor='#0F172A', edgecolor='#334155')
+ax.add_patch(tally_box)
+ax.text(9.85, 4.21, 'Phone: 1   |   Cup: 1', ha='center', va='center', color='#10B981', fontsize=8, fontweight='bold')
 
 res_lines = [
     '#1 Phone (96.1%)\n   Box: (369, 159, 694, 562)',
     '#2 Cup (94.2%)\n   Box: (120, 240, 280, 410)',
-    'Status: Active\nFPS: 32.4'
+    '--- History Log ---',
+    '[12:10:05] Phone detected',
+    '[12:10:08] Cup detected'
 ]
 for j, rl in enumerate(res_lines):
-    ax.text(8.6, 3.8 - j*1.0, rl, ha='left', va='center', color='#E2E8F0', fontsize=8, family='monospace')
+    ax.text(8.65, 3.45 - j*0.62, rl, ha='left', va='center', color='#E2E8F0', fontsize=7.5, family='monospace')
 
-ax.set_xlim(0, 11)
-ax.set_ylim(0, 6)
+ax.set_xlim(0, 11.5)
+ax.set_ylim(0, 6.2)
 
 plt.savefig('figures/ui_screenshot.png', dpi=300, bbox_inches='tight')
 plt.close()

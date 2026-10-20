@@ -79,22 +79,24 @@ As depicted in Figure~\ref{fig:roc_curve}, our YOLOv8s model exhibited smooth an
     \item \textbf{mAP Trajectory (Right Panel)}: Validation $\text{mAP@0.50}$ surpassed $80\%$ within the first 8 epochs and stabilized at a peak of $\mathbf{96.4\%}$, while the stringent $\text{mAP@0.50:0.95}$ metric achieved $\mathbf{82.1\%}$.
 \end{itemize}
 
-\section{User Interface}
+\section{User Interface and Real-Time Camera Studio}
 \label{sec:user_interface}
 
-To translate the trained neural perception engine into an accessible, production-ready desktop tool, a graphical user interface was engineered using CustomTkinter and OpenCV. As shown in Figure~\ref{fig:ui_dashboard}, the interface features a modern dark-themed aesthetic with synchronized telemetry and controls:
+To translate the trained neural perception engine into an accessible, production-ready desktop tool, a comprehensive graphical user interface and dedicated Real-Time Camera Studio were engineered using CustomTkinter, OpenCV, and Pillow. As shown in Figure~\ref{fig:ui_dashboard}, the interface features a modern dark-themed aesthetic with synchronized telemetry, multi-camera ingestion controls, and live analytics:
 
 \begin{itemize}
-    \item \textbf{Interactive Control Sidebar (Left Panel)}: Allows the user to select detection weights (\texttt{best.pt} or pre-trained models), choose between active optical webcams, toggle live detection via Start/Stop buttons, dynamically adjust the confidence threshold slider ($\tau_{\text{conf}} \in [0.10, 0.90]$), and switch interface language between English and Vietnamese.
-    \item \textbf{High-DPI Video Viewport (Center Panel)}: Renders incoming webcam video frames in real time with hardware-accelerated letterboxing. Each detected object is enclosed by an anti-aliased bounding box, displaying bilingual category names (e.g., \texttt{Toothbrush / Bàn chải}) and detection confidence scores (e.g., \texttt{94\%}).
-    \item \textbf{Real-Time Telemetry \& Object Inventory (Right Panel)}: Displays live performance indicators including inference throughput ($32.4$ FPS), total detected object count, and an active class tally breakdown.
-    \item \textbf{Event Snapshot \& Audio Alerts (Bottom Controls)}: Users can capture timestamped high-resolution inference frames to local storage with a single click and toggle acoustic feedback upon new object discovery.
+    \item \textbf{Dedicated Camera Studio Mode}: Positioned prominently as the primary operational view in the navigation sidebar, the Camera Studio delivers end-to-end live perception directly upon application startup. It integrates Windows DirectShow hardware acceleration (\texttt{cv2.CAP\_DSHOW}) to eliminate opening latency, achieving instant video streaming without thread stalling.
+    \item \textbf{Multi-Source Camera Probing and IP Streaming}: An automated probing routine (\texttt{\_scan\_available\_cameras}) scans hardware indices ($0$ to $3$) in a non-blocking background thread to detect integrated laptop webcams and external USB optical sensors. Furthermore, the architecture supports wireless mobile phone camera integration via RTSP/HTTP stream ingestion (e.g., DroidCam, Iriun Webcam), enabling flexible handheld object scanning across domestic spaces.
+    \item \textbf{Optical Manipulation and Resolution Adaptation}: Users can toggle horizontal mirroring (\textit{Mirror Mode}) for intuitive egocentric manipulation of handheld items, and dynamically switch video resolution between high-framerate $640 \times 480$ (over $32$ FPS) and high-definition $1280 \times 720$ (HD) for fine-grained object inspection.
+    \item \textbf{Asynchronous Voice Announcer (Text-to-Speech)}: An integrated, thread-safe speech engine (\texttt{VoiceAnnouncer}) powered by offline SAPI5/\texttt{pyttsx3} audibly articulates newly detected objects in Vietnamese (e.g., ``\textit{Điện thoại}'', ``\textit{Cốc nước}'', ``\textit{Bàn tay}''). The audio worker utilizes a FIFO queue and class-level debounce intervals ($4.0$ seconds) to prevent acoustic clutter while ensuring zero impact on inference framerates.
+    \item \textbf{Real-Time Telemetry and Object Inventory Panel}: The right-hand dashboard presents instantaneous object intelligence, including an active entity count, grouped class badges (e.g., \texttt{[Phone/Điện thoại: 1 | Cup/Cốc: 2]}), detailed bounding box coordinates with confidence percentages, and a chronological event log tracking newly entered objects with second-level timestamps ($[\text{HH:MM:SS}]$).
+    \item \textbf{Automated Snapshot Evidence Archiving}: High-resolution inference frames containing rendered anti-aliased Vietnamese bounding boxes are saved to disk with a single click into a structured \texttt{captures/} directory using standardized timestamps (\texttt{capture\_YYYYMMDD\_HHMMSS.jpg}), supported by an instant inspection viewer.
 \end{itemize}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.92\textwidth]{figures/ui_screenshot.png}
-    \caption{Identify Anything Desktop Application Interface with Live Object Detection}
+    \caption{Identify Anything Desktop Application Interface Featuring the Dedicated Real-Time Camera Studio}
     \label{fig:ui_dashboard}
 \end{figure}
 

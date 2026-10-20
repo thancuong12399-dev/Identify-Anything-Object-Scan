@@ -111,13 +111,13 @@ To enable rapid experimentation without local GPU bottlenecks, the model trainin
 
 The real-time operational workflow executes across seven synchronized stages:
 \begin{enumerate}
-    \item \textbf{Video Frame Acquisition}: Live video frames ($1280 \times 720$ resolution at 30 FPS) are acquired from the system webcam using a dedicated non-blocking thread managed by the \texttt{WebcamStream} handler in OpenCV.
-    \item \textbf{Letterbox Pre-Processing}: Input frames are adaptively resized and padded to the model's canonical dimensions ($640 \times 640 \times 3$) while strictly preserving the original aspect ratio to eliminate spatial distortion.
+    \item \textbf{Multi-Source Video Ingestion}: Live video frames ($1280 \times 720$ HD or $640 \times 480$ resolution at 30+ FPS) are acquired via Windows DirectShow (\texttt{cv2.CAP\_DSHOW}) or wireless IP RTSP/HTTP streams. The stream worker operates on a dedicated daemon thread to guarantee zero latency and prevent interface freezing.
+    \item \textbf{Optical Conditioning and Mirroring}: An optional horizontal flip operation (\textit{Mirror Mode}) is applied to facilitate natural egocentric perception for frontal cameras. Frames undergo adaptive letterbox padding to preserve spatial geometry before deep feature ingestion.
     \item \textbf{Tensor Conversion \& Normalization}: The BGR frame buffer is converted to RGB format, normalized from integer range $[0, 255]$ to floating-point $[0.0, 1.0]$, and loaded into the PyTorch inference tensor on the host device.
     \item \textbf{Deep Feature Inference}: The pre-trained YOLOv8s weights (\texttt{best.pt}) evaluate the tensor through the CSPDarknet backbone and decoupled head, generating multi-scale bounding-box predictions and class probabilities.
-    \item \textbf{Non-Maximum Suppression (NMS)}: Candidate bounding boxes undergo Non-Maximum Suppression with an IoU threshold $\tau_{\text{IoU}} = 0.45$ and a user-adjustable confidence threshold $\tau_{\text{conf}} \in [0.20, 0.90]$ to eliminate redundant overlapping boxes.
-    \item \textbf{Class Mapping and Bilingual Translation}: Detected class indices are mapped to both English identifiers and Vietnamese terminology (e.g., \textit{toothbrush} $\rightarrow$ \textit{Bàn chải đánh răng}, \textit{armchair} $\rightarrow$ \textit{Ghế bành}).
-    \item \textbf{Interactive UI Overlay \& Audio/LED Alert}: The bounding boxes, class labels, confidence scores, and detection counts are rendered on the high-DPI CustomTkinter interface canvas, simultaneously updating the event telemetry dashboard.
+    \item \textbf{Non-Maximum Suppression (NMS)}: Candidate bounding boxes undergo Non-Maximum Suppression with an IoU threshold $\tau_{\text{IoU}} = 0.45$ and a user-adjustable confidence threshold $\tau_{\text{conf}} \in [0.10, 0.90]$ to eliminate redundant overlapping boxes.
+    \item \textbf{Bilingual Mapping and Emoji Representation}: Detected class indices are mapped to standardized English identifiers, Vietnamese terminology (e.g., \textit{Phone} $\rightarrow$ \textit{Điện thoại}, \textit{Cup} $\rightarrow$ \textit{Cốc nước}), and corresponding Unicode object icons.
+    \item \textbf{Live Telemetry Rendering \& Voice Announcement}: The bounding boxes, confidence badges, and active object telemetry are rendered on the high-DPI CustomTkinter interface canvas. Simultaneously, newly appearing classes are dispatched to the asynchronous \texttt{VoiceAnnouncer} thread for non-blocking speech synthesis, while high-resolution evidence can be saved to \texttt{captures/} with a single click.
 \end{enumerate}
 
 \section{System Design}
@@ -125,10 +125,10 @@ The real-time operational workflow executes across seven synchronized stages:
 
 The end-to-end software and hardware architecture is structured into four decoupled, modular layers:
 \begin{itemize}
-    \item \textbf{Edge Perception \& Video Ingestion Layer}: Encapsulates camera discovery, OpenCV video capture, asynchronous thread buffering, and format conversion.
+    \item \textbf{Edge Perception \& Multi-Camera Ingestion Layer}: Encapsulates hardware-level camera auto-probing, DirectShow acceleration, network IP camera streaming, and real-time horizontal mirroring.
     \item \textbf{Deep Inference Engine}: Incorporates the PyTorch / Ultralytics YOLOv8 inference graph, dynamic weight loading (\texttt{best.pt} or pre-trained defaults), GPU/CPU device dispatching, and NMS post-processing.
-    \item \textbf{Data Transformation \& Config Management Layer}: Manages dataset conversion from Supervisely JSON to YOLO format, Kaggle notebook generation, YAML dataset descriptors (\texttt{data.yaml}), and bilingual localization dictionaries.
-    \item \textbf{Interactive Presentation Layer}: Built on CustomTkinter and PIL, delivering a modern dark-themed GUI with live canvas rendering, confidence sliders, detection telemetry panels, snapshot capture, and localized English/Vietnamese toggles.
+    \item \textbf{Acoustic Feedback \& Speech Synthesis Subsystem}: Employs a dedicated background worker thread with a thread-safe FIFO queue and class-level debounce timer, executing offline Vietnamese Text-to-Speech via \texttt{pyttsx3}.
+    \item \textbf{Interactive Presentation \& Telemetry Layer}: Built on CustomTkinter and PIL, delivering a modern dark-themed GUI with a dedicated Camera Studio, live telemetry panels, grouped class counts, chronological event history logs, and instant snapshot archiving.
 \end{itemize}
 
 Figure~\ref{fig:system_design} illustrates the complete architectural design and end-to-end pipeline flow of the developed system.

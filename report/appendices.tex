@@ -146,6 +146,60 @@ class AsyncDetectionPipeline:
         return annotated_frame, results[0].boxes
 \end{lstlisting}
 
+\begin{lstlisting}[language=Python, caption={Non-Blocking Asynchronous Voice Announcer for Real-Time Detection Alerts}, label={lst:voice_announcer}]
+import queue
+import time
+import threading
+import pyttsx3
+
+class VoiceAnnouncer:
+    """
+    Thread-safe speech synthesis queue with class-level debounce timer.
+    Audibly announces detected household objects without degrading UI FPS.
+    """
+    def __init__(self, debounce_interval: float = 4.0):
+        self.queue = queue.Queue()
+        self.last_spoken = {}
+        self.debounce = debounce_interval
+        self.is_enabled = False
+        self.is_running = True
+        self.worker = threading.Thread(target=self._speech_worker, daemon=True)
+        self.worker.start()
+
+    def announce(self, vietnamese_label: str):
+        if not self.is_enabled:
+            return
+        now = time.time()
+        # Suppress repeated announcements within the debounce window
+        if vietnamese_label in self.last_spoken:
+            if (now - self.last_spoken[vietnamese_label]) < self.debounce:
+                return
+
+        self.last_spoken[vietnamese_label] = now
+        if self.queue.qsize() < 3:
+            self.queue.put(vietnamese_label)
+
+    def _speech_worker(self):
+        try:
+            engine = pyttsx3.init()
+            engine.setProperty('rate', 160)
+            engine.setProperty('volume', 0.9)
+        except Exception:
+            engine = None
+
+        while self.is_running:
+            try:
+                label = self.queue.get(timeout=0.5)
+                if engine and self.is_enabled:
+                    engine.say(label)
+                    engine.runAndWait()
+                self.queue.task_done()
+            except queue.Empty:
+                continue
+            except Exception:
+                pass
+\end{lstlisting}
+
 \chapter{Hyperparameter Configurations}
 \label{app:hyperparameters}
 
